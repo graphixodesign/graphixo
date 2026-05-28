@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Graphixo. — Creative Design Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080808;--bg2:#0e0e0e;--bg3:#141414;
+  --red:#e8272a;--red2:#ff4447;
+  --white:#f5f3ef;--grey:#888;--grey2:#444;
+  --display:'Bebas Neue',cursive;
+  --body:'DM Sans',sans-serif;
+  --clash:'Clash Display',sans-serif;
+  /* Glassmorphism tokens */
+  --glass-bg: rgba(20,20,20,0.45);
+  --glass-bg-light: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.08);
+  --glass-border-red: rgba(232,39,42,0.25);
+  --glass-blur: blur(18px) saturate(160%);
+  --glass-blur-heavy: blur(28px) saturate(180%);
+  --glass-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+  --glass-shadow-red: 0 8px 32px rgba(232,39,42,0.12), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+/* Global glass utility */
+.glass{
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+.glass-red{
+  background: rgba(232,39,42,0.08);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-red);
+  box-shadow: var(--glass-shadow-red);
+}
+/* Ambient glow blobs behind sections */
+.glow-blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;}
+
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:var(--body);overflow-x:hidden;cursor:none;}
+body.menu-open{overflow:hidden;}
+
+/* CURSOR */
+#cur{position:fixed;width:10px;height:10px;background:var(--red);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s,background .2s;}
+#cur-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(232,39,42,0.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .1s ease-out;}
+#cur.hovering{width:20px;height:20px;}
+#cur-ring.hovering{width:52px;height:52px;border-color:var(--red);}
+@media(hover:none){#cur,#cur-ring{display:none;}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 5vw;mix-blend-mode:normal;}
+.nav-bg{position:fixed;top:0;left:0;right:0;height:80px;background:rgba(8,8,8,0);backdrop-filter:blur(0px);transition:background .4s,backdrop-filter .4s;z-index:99;}
+.nav-bg.scrolled{background:rgba(8,8,8,0.55);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border-bottom:1px solid rgba(255,255,255,0.06);box-shadow:0 4px 24px rgba(0,0,0,0.4);}
+.logo-wrap{display:flex;align-items:center;gap:10px;text-decoration:none;z-index:101;}
+.logo-img{height:32px;width:auto;}
+.nav-links{display:flex;gap:32px;list-style:none;}
+.nav-links a{font-family:var(--body);font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(245,243,239,0.6);text-decoration:none;transition:color .2s;}
+.nav-links a:hover{color:var(--white);}
+.nav-cta{background:var(--red);color:#fff;border:none;font-family:var(--body);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 22px;border-radius:3px;cursor:pointer;transition:background .2s,transform .15s;z-index:101;}
+.nav-cta:hover{background:var(--red2);transform:scale(1.04);}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;z-index:101;padding:4px;}
+.hamburger span{display:block;width:24px;height:2px;background:var(--white);transition:all .3s;}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+@media(max-width:768px){.nav-links,.nav-cta-desk{display:none;}.hamburger{display:flex;}}
+
+/* MOBILE MENU */
+#mobile-menu{position:fixed;inset:0;background:var(--bg);z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;opacity:0;pointer-events:none;transition:opacity .35s;}
+#mobile-menu.open{opacity:1;pointer-events:all;}
+#mobile-menu a{font-family:var(--display);font-size:clamp(36px,10vw,56px);color:var(--white);text-decoration:none;letter-spacing:0.04em;transition:color .2s;}
+#mobile-menu a:hover{color:var(--red);}
+#mobile-menu .m-cta{background:var(--red);color:#fff;padding:14px 36px;border-radius:4px;font-family:var(--body);font-size:14px;letter-spacing:0.1em;text-transform:uppercase;margin-top:12px;cursor:pointer;border:none;display:block;}
+
+/* ─── HERO ─── */
+#hero{position:relative;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+#hero-canvas{position:absolute;inset:0;z-index:1;}
+.hero-vignette{position:absolute;inset:0;z-index:2;background:radial-gradient(ellipse at center,transparent 30%,rgba(8,8,8,0.85) 100%);}
+.hero-content{position:relative;z-index:3;text-align:center;padding:0 5vw;}
+.hero-badge{display:inline-block;font-family:var(--body);font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:var(--red);background:rgba(232,39,42,0.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(232,39,42,0.25);padding:8px 20px;border-radius:50px;margin-bottom:24px;opacity:0;animation:fadeUp .8s .3s forwards;box-shadow:0 4px 20px rgba(232,39,42,0.1),inset 0 1px 0 rgba(255,255,255,0.08);}
+.hero-title{font-family:var(--display);font-size:clamp(64px,14vw,160px);line-height:0.88;letter-spacing:0.02em;margin-bottom:10px;opacity:0;animation:fadeUp .8s .5s forwards;}
+.hero-title .red{color:var(--red);}
+.hero-sub{font-family:var(--body);font-size:clamp(14px,2.5vw,18px);color:rgba(245,243,239,0.55);font-weight:300;max-width:500px;margin:18px auto 36px;line-height:1.7;opacity:0;animation:fadeUp .8s .75s forwards;}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;opacity:0;animation:fadeUp .8s 1s forwards;}
+.btn-primary{background:var(--red);color:#fff;border:none;font-family:var(--body);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:14px 32px;border-radius:50px;cursor:pointer;transition:background .2s,transform .15s,box-shadow .2s;box-shadow:0 4px 20px rgba(232,39,42,0.35);}
+.btn-primary:hover{background:var(--red2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(232,39,42,0.5);}
+.btn-outline{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--white);border:1px solid rgba(245,243,239,0.15);font-family:var(--body);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:14px 32px;border-radius:50px;cursor:pointer;transition:border-color .2s,transform .15s,background .2s;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);}
+.btn-outline:hover{border-color:rgba(245,243,239,0.4);background:rgba(255,255,255,0.09);transform:translateY(-2px);}
+.hero-scroll{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;animation:fadeUp .8s 1.4s forwards;}
+.hero-scroll span{font-family:var(--body);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,243,239,0.35);}
+.scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,rgba(232,39,42,0.8),transparent);animation:scrollPulse 2s infinite;}
+.stats-row{position:absolute;bottom:0;left:0;right:0;z-index:3;display:flex;border-top:1px solid rgba(255,255,255,0.06);background:rgba(8,8,8,0.35);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);}
+.stat-item{flex:1;padding:18px 5vw;border-right:1px solid rgba(255,255,255,0.06);text-align:center;}
+.stat-item:last-child{border-right:none;}
+.stat-num{font-family:var(--display);font-size:clamp(28px,4vw,48px);color:var(--white);letter-spacing:0.02em;}
+.stat-num .dot{color:var(--red);}
+.stat-label{font-family:var(--body);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey);margin-top:4px;}
+
+/* ─── SECTIONS COMMON ─── */
+section{padding:clamp(80px,10vw,140px) 5vw;}
+.section-tag{font-family:var(--body);font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:var(--red);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.section-tag::before{content:'';display:block;width:28px;height:1px;background:var(--red);}
+.section-title{font-family:var(--display);font-size:clamp(42px,7vw,90px);line-height:0.9;letter-spacing:0.02em;margin-bottom:0;}
+.section-sub{font-family:var(--body);font-size:clamp(14px,2vw,16px);color:rgba(245,243,239,0.5);font-weight:300;max-width:480px;line-height:1.8;margin-top:18px;}
+
+/* ─── ABOUT ─── */
+#about{background:var(--bg);}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(40px,6vw,80px);align-items:center;margin-top:60px;}
+@media(max-width:768px){.about-grid{grid-template-columns:1fr;}}
+.about-3d-wrap{position:relative;height:clamp(280px,40vw,480px);border-radius:16px;overflow:hidden;background:rgba(20,20,20,0.4);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid rgba(255,255,255,0.07);box-shadow:var(--glass-shadow);}
+#about-canvas{position:absolute;inset:0;}
+
+.about-text p{font-size:15px;line-height:1.9;color:rgba(245,243,239,0.65);margin-bottom:18px;}
+.skills-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px;}
+.chip{font-family:var(--body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:7px 14px;background:rgba(255,255,255,0.04);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.08);border-radius:50px;color:var(--grey);transition:border-color .2s,color .2s,background .2s;}
+.chip:hover{border-color:var(--glass-border-red);color:var(--white);background:rgba(232,39,42,0.08);}
+.about-items{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:32px;}
+.about-item{background:rgba(255,255,255,0.03);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:18px;transition:border-color .3s,background .3s,transform .3s,box-shadow .3s;}
+.about-item:hover{border-color:rgba(232,39,42,0.3);background:rgba(232,39,42,0.05);transform:translateY(-3px);box-shadow:0 12px 32px rgba(232,39,42,0.08);}
+.about-item-icon{font-size:22px;margin-bottom:10px;}
+.about-item-title{font-family:var(--clash);font-size:14px;font-weight:600;margin-bottom:6px;}
+.about-item-desc{font-size:12px;color:var(--grey);line-height:1.7;}
+
+/* ─── PORTFOLIO ─── */
+#portfolio{background:var(--bg2);}
+.category-bar{display:flex;gap:10px;flex-wrap:wrap;margin:36px 0 40px;}
+.cat-btn{font-family:var(--body);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:9px 18px;border-radius:50px;border:1px solid var(--grey2);background:transparent;color:var(--grey);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.cat-btn.active,.cat-btn:hover{background:var(--red);border-color:var(--red);color:#fff;}
+.portfolio-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(260px,28vw,340px),1fr));gap:20px;}
+.port-card{position:relative;border-radius:14px;overflow:hidden;background:rgba(20,20,20,0.5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.07);cursor:pointer;transition:transform .3s,border-color .3s,box-shadow .3s;aspect-ratio:4/3;box-shadow:0 4px 24px rgba(0,0,0,0.3);}
+.port-card:hover{transform:translateY(-8px);border-color:rgba(232,39,42,0.35);box-shadow:0 20px 48px rgba(0,0,0,0.5),0 0 0 1px rgba(232,39,42,0.1);}
+.port-card-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s;}
+.port-card:hover .port-card-img{transform:scale(1.06);}
+.port-card-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;background:rgba(20,20,20,0.6);}
+.port-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(8,8,8,0.96) 0%,rgba(8,8,8,0.2) 60%,transparent 100%);opacity:0;transition:opacity .3s;}
+.port-card:hover .port-card-overlay{opacity:1;}
+.port-card-info{position:absolute;bottom:0;left:0;right:0;padding:18px;transform:translateY(8px);opacity:0;transition:all .3s;}
+.port-card:hover .port-card-info{transform:translateY(0);opacity:1;}
+.port-card-cat{font-family:var(--body);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--red);margin-bottom:4px;}
+.port-card-title{font-family:var(--clash);font-size:15px;font-weight:600;color:var(--white);}
+.port-card-badge{position:absolute;top:12px;left:12px;background:rgba(232,39,42,0.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(232,39,42,0.4);font-size:10px;letter-spacing:0.1em;padding:5px 12px;border-radius:50px;text-transform:uppercase;font-family:var(--body);box-shadow:0 2px 12px rgba(232,39,42,0.2);}
+.portfolio-load-more{text-align:center;margin-top:40px;}
+
+/* ─── DRIVE LINK SECTION ─── */
+#drive-section{background:var(--bg);padding:clamp(60px,8vw,100px) 5vw;text-align:center;}
+.drive-card{max-width:680px;margin:40px auto 0;background:var(--bg3);border:1px solid var(--grey2);border-radius:12px;padding:clamp(32px,5vw,56px);position:relative;overflow:hidden;}
+.drive-card::before{content:'';position:absolute;top:-40px;right:-40px;width:150px;height:150px;background:var(--red);border-radius:50%;opacity:0.06;filter:blur(30px);}
+.drive-icon{font-size:48px;margin-bottom:18px;}
+.drive-card h3{font-family:var(--display);font-size:clamp(28px,4vw,48px);margin-bottom:10px;}
+.drive-card p{font-size:14px;color:var(--grey);line-height:1.8;margin-bottom:28px;}
+.drive-link-btn{display:inline-flex;align-items:center;gap:10px;background:var(--red);color:#fff;text-decoration:none;font-family:var(--body);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:14px 28px;border-radius:4px;transition:background .2s,transform .15s;}
+.drive-link-btn:hover{background:var(--red2);transform:translateY(-2px);}
+.drive-count{display:flex;gap:24px;justify-content:center;margin-top:28px;flex-wrap:wrap;}
+.drive-count-item{text-align:center;}
+.drive-count-num{font-family:var(--display);font-size:clamp(24px,4vw,40px);color:var(--red);}
+.drive-count-label{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey);}
+
+/* ─── SERVICES ─── */
+#services{background:var(--bg2);}
+.services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(200px,26vw,300px),1fr));gap:16px;margin-top:52px;}
+.svc-card{background:var(--bg3);border:1px solid var(--grey2);border-radius:10px;padding:28px;transition:border-color .3s,transform .3s;}
+.svc-card:hover{border-color:var(--red);transform:translateY(-4px);}
+.svc-icon{width:44px;height:44px;background:rgba(232,39,42,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:18px;}
+.svc-title{font-family:var(--clash);font-size:16px;font-weight:600;margin-bottom:8px;}
+.svc-desc{font-size:13px;color:var(--grey);line-height:1.8;}
+.svc-price{margin-top:16px;font-family:var(--display);font-size:22px;color:var(--red);}
+
+/* ─── PROCESS ─── */
+#process{background:var(--bg);}
+.process-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin-top:52px;position:relative;}
+.process-steps::before{content:'';position:absolute;top:28px;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,var(--grey2),transparent);display:none;}
+@media(min-width:768px){.process-steps::before{display:block;}}
+.process-step{text-align:center;padding:24px;position:relative;}
+.step-num{font-family:var(--display);font-size:64px;color:rgba(232,39,42,0.15);line-height:1;margin-bottom:16px;}
+.step-title{font-family:var(--clash);font-size:15px;font-weight:600;margin-bottom:8px;}
+.step-desc{font-size:13px;color:var(--grey);line-height:1.8;}
+.step-circle{width:52px;height:52px;border-radius:50%;background:var(--bg3);border:2px solid var(--red);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:22px;color:var(--red);margin:0 auto 20px;}
+
+/* ─── CONTACT ─── */
+#contact{background:var(--bg2);}
+.contact-wrap{display:grid;grid-template-columns:1fr 1fr;gap:clamp(40px,6vw,80px);margin-top:56px;align-items:start;}
+@media(max-width:768px){.contact-wrap{grid-template-columns:1fr;}}
+
+.contact-info p{font-size:15px;color:rgba(245,243,239,0.55);line-height:1.9;margin-bottom:28px;}
+.contact-detail{display:flex;flex-direction:column;gap:14px;}
+.contact-row{display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg3);border-radius:8px;border:1px solid var(--grey2);}
+.contact-row-icon{width:36px;height:36px;background:rgba(231, 191, 192, 0.1);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.contact-row-text small{display:block;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey);}
+.contact-row-text span{font-size:14px;font-family:var(--clash);font-weight:500;}
+.contact-social{display:flex;gap:10px;margin-top:24px;}
+.social-btn{width:40px;height:40px;border-radius:8px;border:1px solid var(--grey2);background:transparent;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:border-color .2s,background .2s;text-decoration:none;color:var(--white);}
+.social-btn:hover{border-color:var(--red);background:rgba(232,39,42,0.1);}
+.contact-form{background:var(--bg3);border:1px solid var(--grey2);border-radius:12px;padding:clamp(24px,4vw,40px);}
+.form-row{margin-bottom:16px;}
+.form-row label{display:block;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey);margin-bottom:8px;}
+.form-row input,.form-row textarea,.form-row select{width:100%;background:var(--bg);border:1px solid var(--grey2);border-radius:6px;padding:12px 14px;font-family:var(--body);font-size:14px;color:var(--white);outline:none;transition:border-color .2s;}
+.form-row input:focus,.form-row textarea:focus,.form-row select:focus{border-color:var(--red);}
+.form-row textarea{resize:vertical;min-height:110px;}
+.form-row select option{background:var(--bg3);}
+.form-submit{width:100%;background:var(--red);color:#fff;border:none;font-family:var(--body);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:14px;border-radius:6px;cursor:pointer;transition:background .2s;margin-top:6px;}
+.form-submit:hover{background:var(--red2);}
+#form-success{display:none;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:14px;color:#4ade80;font-size:14px;margin-top:10px;text-align:center;}
+
+/* ─── ADMIN PANEL ─── */
+#admin-panel{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(16px);z-index:200;display:none;overflow-y:auto;}
+#admin-panel.open{display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;}
+.admin-modal{background:var(--bg3);border:1px solid var(--grey2);border-radius:14px;width:100%;max-width:640px;padding:clamp(24px,4vw,40px);}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.admin-header h2{font-family:var(--display);font-size:36px;}
+.admin-close{background:transparent;border:1px solid var(--grey2);color:var(--white);width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .2s;}
+.admin-close:hover{border-color:var(--red);color:var(--red);}
+.admin-login{display:flex;flex-direction:column;gap:14px;}
+.admin-login input{background:var(--bg);border:1px solid var(--grey2);border-radius:6px;padding:12px 14px;font-family:var(--body);font-size:14px;color:var(--white);outline:none;transition:border-color .2s;}
+.admin-login input:focus{border-color:var(--red);}
+.admin-login-btn{background:var(--red);color:#fff;border:none;padding:13px;border-radius:6px;font-family:var(--body);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;}
+.admin-dash{display:none;}
+.admin-dash.active{display:block;}
+.admin-form-row{margin-bottom:14px;}
+.admin-form-row label{display:block;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey);margin-bottom:7px;}
+.admin-form-row input,.admin-form-row select,.admin-form-row textarea{width:100%;background:var(--bg);border:1px solid var(--grey2);border-radius:6px;padding:11px 13px;font-family:var(--body);font-size:14px;color:var(--white);outline:none;transition:border-color .2s;}
+.admin-form-row input:focus,.admin-form-row select:focus{border-color:var(--red);}
+.admin-form-row select option{background:#111;}
+.admin-submit-btn{background:var(--red);color:#fff;border:none;padding:13px 28px;border-radius:6px;font-family:var(--body);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;width:100%;margin-top:6px;}
+.admin-designs-list{margin-top:28px;border-top:1px solid var(--grey2);padding-top:22px;}
+.admin-designs-list h3{font-family:var(--clash);font-size:15px;margin-bottom:14px;}
+.admin-design-item{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--bg);border-radius:7px;margin-bottom:8px;}
+.admin-design-item span{font-size:13px;color:var(--grey);}
+.admin-design-item strong{font-family:var(--clash);font-size:13px;}
+.admin-del-btn{background:transparent;border:1px solid rgba(232,39,42,0.3);color:var(--red);padding:5px 12px;border-radius:4px;font-size:11px;cursor:pointer;transition:background .2s;}
+.admin-del-btn:hover{background:rgba(232,39,42,0.15);}
+.admin-tab-bar{display:flex;gap:8px;margin-bottom:24px;}
+.admin-tab{font-family:var(--body);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 16px;border-radius:4px;border:1px solid var(--grey2);background:transparent;color:var(--grey);cursor:pointer;transition:all .2s;}
+.admin-tab.active{background:var(--red);border-color:var(--red);color:#fff;}
+
+.msg-item{background:var(--bg);border:1px solid var(--grey2);border-radius:8px;padding:14px;margin-bottom:10px;}
+.msg-item-header{display:flex;justify-content:space-between;margin-bottom:6px;}
+.msg-item-name{font-family:var(--clash);font-size:14px;font-weight:600;}
+.msg-item-date{font-size:11px;color:var(--grey);}
+.msg-item-email{font-size:12px;color:var(--red);margin-bottom:6px;}
+.msg-item-text{font-size:13px;color:rgba(245,243,239,0.6);line-height:1.7;}
+
+/* ─── FOOTER ─── */
+footer{background:var(--bg);border-top:1px solid var(--grey2);padding:clamp(40px,6vw,70px) 5vw 28px;}
+.footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;margin-bottom:48px;}
+@media(max-width:900px){.footer-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:500px){.footer-grid{grid-template-columns:1fr;}}
+.footer-brand p{font-size:13px;color:var(--grey);line-height:1.9;margin-top:14px;max-width:260px;}
+.footer-col h4{font-family:var(--clash);font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;color:rgba(245,243,239,0.5);}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.footer-col ul a{font-size:13px;color:var(--grey);text-decoration:none;transition:color .2s;}
+.footer-col ul a:hover{color:var(--white);}
+.footer-bottom{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--grey2);padding-top:22px;flex-wrap:wrap;gap:12px;}
+.footer-bottom p{font-size:12px;color:var(--grey2);}
+.footer-bottom p span{color:var(--red);}
+
+/* ─── LIGHTBOX ─── */
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;}
+#lightbox.open{display:flex;}
+.lightbox-img{max-width:90vw;max-height:85vh;border-radius:8px;object-fit:contain;}
+.lightbox-close{position:fixed;top:20px;right:20px;background:rgba(255,255,255,0.1);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.lightbox-placeholder{width:min(80vw,600px);height:min(60vh,420px);display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg3);border-radius:12px;border:1px solid var(--grey2);}
+.lightbox-placeholder .lb-icon{font-size:72px;margin-bottom:18px;}
+.lightbox-placeholder h3{font-family:var(--display);font-size:32px;margin-bottom:8px;}
+.lightbox-placeholder p{font-size:13px;color:var(--grey);margin-bottom:20px;}
+.lightbox-placeholder a{background:var(--red);color:#fff;text-decoration:none;padding:10px 22px;border-radius:4px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;}
+
+/* ─── MARQUEE ─── */
+.marquee-wrap{background:var(--red);padding:14px 0;overflow:hidden;position:relative;}
+.marquee{display:flex;gap:0;animation:marquee 12s linear infinite;white-space:nowrap;}
+.marquee-item{font-family:var(--display);font-size:clamp(18px,2.5vw,24px);letter-spacing:0.08em;text-transform:uppercase;color:#fff;padding:0 28px;opacity:0.85;}
+.marquee-item .sep{color:rgba(255,255,255,0.4);margin:0 8px;}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+@keyframes scrollPulse{0%,100%{opacity:1;transform:scaleY(1);}50%{opacity:0.4;transform:scaleY(0.6);}}
+@keyframes marquee{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+
+/* ADMIN TRIGGER */
+#admin-trigger{position:fixed;bottom:24px;right:24px;z-index:50;background:var(--bg3);border:1px solid var(--grey2);color:var(--grey);width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:border-color .2s,color .2s;}
+#admin-trigger:hover{border-color:var(--red);color:var(--red);}
+
+/* WHATSAPP FLOATING BUTTON */
+#wa-float{position:fixed;bottom:24px;left:24px;z-index:150;display:flex;flex-direction:column;align-items:flex-start;gap:10px;}
+#wa-btn{width:54px;height:54px;border-radius:50%;background:#25D366;border:none;color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 20px rgba(37,211,102,0.45);transition:transform .2s,box-shadow .2s;text-decoration:none;}
+#wa-btn:hover{transform:scale(1.1);box-shadow:0 8px 32px rgba(37,211,102,0.6);}
+#wa-tooltip{background:rgba(37,211,102,0.15);backdrop-filter:blur(12px);border:1px solid rgba(37,211,102,0.3);color:#25D366;font-size:12px;font-family:var(--body);padding:8px 14px;border-radius:50px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .3s;letter-spacing:0.05em;}
+#wa-float:hover #wa-tooltip{opacity:1;}
+#wa-pulse{position:absolute;width:54px;height:54px;border-radius:50%;background:rgba(37,211,102,0.3);animation:waPulse 2s ease-out infinite;pointer-events:none;}
+@keyframes waPulse{0%{transform:scale(1);opacity:0.8;}100%{transform:scale(1.8);opacity:0;}}
+
+/* IMPROVED CONTACT ROWS */
+.contact-row{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--grey2);text-decoration:none;transition:border-color .2s,background .2s,transform .2s;}
+.contact-row:hover{border-color:rgba(232,39,42,0.4);background:rgba(232,39,42,0.05);transform:translateX(4px);}
+.contact-row-icon{width:40px;height:40px;background:rgba(232,39,42,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;color:var(--red);}
+.contact-row-icon.wa-icon{background:rgba(37,211,102,0.1);color:#25D366;}
+.wa-row:hover .wa-icon{background:rgba(37,211,102,0.2);}
+
+/* WHATSAPP QUICK CONTACT BUTTONS */
+.wa-quick-btns{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;}
+.wa-quick-btn{display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;text-decoration:none;font-family:var(--body);font-size:13px;letter-spacing:0.08em;padding:12px 22px;border-radius:50px;transition:background .2s,transform .15s,box-shadow .2s;box-shadow:0 4px 16px rgba(37,211,102,0.3);border:none;cursor:pointer;}
+.wa-quick-btn:hover{background:#1ebe5d;transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,211,102,0.45);}
+.email-quick-btn{display:inline-flex;align-items:center;gap:8px;background:rgba(232,39,42,0.1);color:var(--red);text-decoration:none;font-family:var(--body);font-size:13px;letter-spacing:0.08em;padding:12px 22px;border-radius:50px;border:1px solid rgba(232,39,42,0.3);transition:background .2s,transform .15s;cursor:pointer;}
+.email-quick-btn:hover{background:rgba(232,39,42,0.2);transform:translateY(-2px);}
+
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cur"></div>
+<div id="cur-ring"></div>
+
+<!-- NAV -->
+<div class="nav-bg" id="nav-bg"></div>
+<nav>
+  <a href="#hero" class="logo-wrap">
+    <svg height="28" viewBox="0 0 180 40" xmlns="http://www.w3.org/2000/svg">
+      <text y="32" font-family="'Bebas Neue',cursive" font-size="38" fill="white" letter-spacing="1">graphixo</text>
+      <circle cx="140" cy="27" r="6" fill="#e8272a"/>
+    </svg>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#portfolio">Work</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <button class="nav-cta nav-cta-desk" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Hire Us</button>
+  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div id="mobile-menu">
+  <a href="#about" onclick="closeMenu()">About</a>
+  <a href="#portfolio" onclick="closeMenu()">Work</a>
+  <a href="#services" onclick="closeMenu()">Services</a>
+  <a href="#process" onclick="closeMenu()">Process</a>
+  <a href="#contact" onclick="closeMenu()">Contact</a>
+  <button class="m-cta" onclick="closeMenu();document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Hire Us</button>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-vignette"></div>
+  <div class="hero-content">
+    <div class="hero-badge"><i class="bi bi-stars"></i> Creative Design Studio — Est. 2024</div>
+    <div class="hero-title">GRAPHIXO<span class="red">.</span></div>
+    <p class="hero-sub">We craft bold visual identities, stunning social media designs, and unforgettable brand experiences — 300+ projects delivered.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="document.getElementById('portfolio').scrollIntoView({behavior:'smooth'})">Explore Work</button>
+      <button class="btn-outline" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Get In Touch</button>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-item"><div class="stat-num">300<span class="dot">+</span></div><div class="stat-label">Designs Made</div></div>
+    <div class="stat-item"><div class="stat-num">15<span class="dot">+</span></div><div class="stat-label">Categories</div></div>
+    <div class="stat-item" style="display:none" id="stat3"><div class="stat-num">100<span class="dot">%</span></div><div class="stat-label">Client Satisfaction</div></div>
+    <div class="stat-item"><div class="stat-num">1<span class="dot">+</span></div><div class="stat-label">Year Studio</div></div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee" id="marquee-inner">
+    <span class="marquee-item">Logo Design<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Social Media<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Brand Identity<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Poster Design<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Flyer Design<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Typography<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Business Card<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Banner Design<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Logo Design<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Social Media<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Brand Identity<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Poster Design<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Flyer Design<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Typography<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Business Card<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+    <span class="marquee-item">Banner Design<span class="sep"><i class="bi bi-diamond-fill"></i></span></span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-tag">Who We Are</div>
+  <div class="section-title">DO SOMETHING<br>CREATIVE<span style="color:var(--red)">.</span></div>
+  <div class="about-grid">
+    <div class="about-3d-wrap reveal">
+      <canvas id="about-canvas"></canvas>
+    </div>
+    <div class="about-text reveal">
+      <p>Graphixo is a creative design studio built on a simple philosophy: every pixel should have purpose. We work at the intersection of bold aesthetics and strategic thinking to create designs that don't just look good — they work.</p>
+      <p>From crafting a brand's visual DNA from scratch to designing scroll-stopping social media posts, we bring the same obsessive attention to detail to every project in our 300+ portfolio.</p>
+      <div class="about-items">
+        <div class="about-item"><div class="about-item-icon"><i class="bi bi-lightning-charge-fill" style="color:var(--red);font-size:20px;"></i></div><div class="about-item-title">Bold Aesthetics</div><div class="about-item-desc">Designs that stop the scroll and stay in memory.</div></div>
+        <div class="about-item"><div class="about-item-icon"><i class="bi bi-rocket-takeoff-fill" style="color:var(--red);font-size:20px;"></i></div><div class="about-item-title">Fast Delivery</div><div class="about-item-desc">Quick turnarounds without compromising quality.</div></div>
+        <div class="about-item"><div class="about-item-icon"><i class="bi bi-arrow-repeat" style="color:var(--red);font-size:20px;"></i></div><div class="about-item-title">Unlimited Revisions</div><div class="about-item-desc">We iterate until you're completely satisfied.</div></div>
+        <div class="about-item"><div class="about-item-icon"><i class="bi bi-folder2-open" style="color:var(--red);font-size:20px;"></i></div><div class="about-item-title">All Files Included</div><div class="about-item-desc">AI, PDF, PNG, SVG — every format you need.</div></div>
+      </div>
+      <div class="skills-chips" style="margin-top:28px;">
+        <div class="chip">Canva Pro</div>
+        <div class="chip">Adobe Illustrator</div>
+        <div class="chip">Photoshop</div>
+        <div class="chip">Figma</div>
+        <div class="chip">Brand Strategy</div>
+        <div class="chip">Motion Graphics</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section id="portfolio">
+  <div class="section-tag">Our Work</div>
+  <div class="section-title">300+ DESIGNS<span style="color:var(--red)">.</span></div>
+  <p class="section-sub">Browse our category-wise design portfolio. Real projects, real results.</p>
+  <div class="category-bar" id="cat-bar">
+    <button class="cat-btn active" data-cat="all"><i class="bi bi-grid-3x3-gap"></i> All Work</button>
+    <button class="cat-btn" data-cat="logo"><i class="bi bi-vector-pen"></i> Logo Design</button>
+    <button class="cat-btn" data-cat="social"><i class="bi bi-instagram"></i> Social Media</button>
+    <button class="cat-btn" data-cat="poster"><i class="bi bi-file-earmark-image"></i> Poster</button>
+    <button class="cat-btn" data-cat="flyer"><i class="bi bi-newspaper"></i> Flyer</button>
+    <button class="cat-btn" data-cat="brand"><i class="bi bi-award"></i> Brand Identity</button>
+    <button class="cat-btn" data-cat="banner"><i class="bi bi-aspect-ratio"></i> Banner</button>
+    <button class="cat-btn" data-cat="card"><i class="bi bi-credit-card-2-front"></i> Business Card</button>
+    
+  </div>
+  <div class="portfolio-grid" id="portfolio-grid"></div>
+  <div class="portfolio-load-more">
+    <button class="btn-outline" id="load-more-btn" onclick="loadMore()" style="margin-top:12px;">Load More Designs</button>
+  </div>
+</section>
+
+<!-- DRIVE SECTION -->
+<section id="drive-section">
+  <div class="section-tag" style="justify-content:center;">Full Collection</div>
+  <div class="section-title" style="text-align:center;">SEE ALL 300+ DESIGNS <br>ON DRIVE<span style="color:var(--red)">.</span></div>
+  <div class="drive-card reveal">
+    <div class="drive-icon"><i class="bi bi-google" style="font-size:48px;color:var(--red);"></i></div>
+    <h3>Graphixo Design Vault</h3>
+    <p>Our complete collection of 300+ Canva designs organized by category — logos, social media posts, posters, flyers, brand identities and more. All in one place.</p>
+    <a class="drive-link-btn" href="https://drive.google.com/drive/folders/1PREQppnjhSuab3JQpE_8aEcefKf-vJbt?usp=drive_link" target="_blank">
+      <i class="bi bi-folder2-open"></i> Open Google Drive Folder
+    </a>
+    <div class="drive-count">
+      <div class="drive-count-item"><div class="drive-count-num">300+</div><div class="drive-count-label">Total Designs</div></div>
+      <div class="drive-count-item"><div class="drive-count-num">9+</div><div class="drive-count-label">Categories</div></div>
+      <div class="drive-count-item"><div class="drive-count-num">Free</div><div class="drive-count-label">To Browse</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="section-tag">What We Do</div>
+  <div class="section-title">OUR<br>SERVICES<span style="color:var(--red)">.</span></div>
+  <div class="services-grid">
+    <div class="svc-card reveal"><div class="svc-icon"><i class="bi bi-vector-pen"></i></div><div class="svc-title">Logo & Brand Identity</div><div class="svc-desc">Complete visual identity systems — logo, color palette, typography, brand guidelines, and usage rules.</div><div class="svc-price">₹499/-</div></div>
+    <div class="svc-card reveal"><div class="svc-icon"><i class="bi bi-instagram"></i></div><div class="svc-title">Social Media Designs</div><div class="svc-desc">Scroll-stopping posts, stories, reels covers, and templates for Instagram, Facebook, LinkedIn.</div><div class="svc-price">₹499/-</div></div>
+    <div class="svc-card reveal"><div class="svc-icon"><i class="bi bi-file-earmark-image"></i></div><div class="svc-title">Poster & Flyer Design</div><div class="svc-desc">Event posters, promotional flyers, festival creatives — print and digital-ready files.</div><div class="svc-price">₹399/-</div></div>
+    <div class="svc-card reveal"><div class="svc-icon"><i class="bi bi-aspect-ratio"></i></div><div class="svc-title">Banner Design</div><div class="svc-desc">Web banners, hoarding designs, exhibition panels, YouTube channel art and thumbnails.</div><div class="svc-price">₹399/-</div></div>
+    <div class="svc-card reveal"><div class="svc-icon"><i class="bi bi-credit-card-2-front"></i></div><div class="svc-title">Business Card & Stationery</div><div class="svc-desc">Premium business cards, letterheads, envelopes, visiting cards — full stationery suite.</div><div class="svc-price">₹399/-</div></div>
+    
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="section-tag">How It Works</div>
+  <div class="section-title">OUR<br>PROCESS<span style="color:var(--red)">.</span></div>
+  <div class="process-steps">
+    <div class="process-step reveal"><div class="step-circle">01</div><div class="step-title">Brief & Discovery</div><div class="step-desc">We understand your brand, target audience, goals, and design preferences in a detailed brief session.</div></div>
+    <div class="process-step reveal"><div class="step-circle">02</div><div class="step-title">Concept & Research</div><div class="step-desc">We research your industry and competitors, then explore multiple creative directions before settling on the strongest.</div></div>
+    <div class="process-step reveal"><div class="step-circle">03</div><div class="step-title">Design & Craft</div><div class="step-desc">We build your design with precision — every pixel, colour, and spacing decision made with purpose.</div></div>
+    <div class="process-step reveal"><div class="step-circle">04</div><div class="step-title">Refine & Deliver</div><div class="step-desc">We revise based on your feedback and deliver final files in all formats — AI, PDF, PNG, SVG, and more.</div></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-tag">Let's Create</div>
+  <div class="section-title">START YOUR<br>PROJECT<span style="color:var(--red)">.</span></div>
+  <div class="contact-wrap">
+    <div class="contact-info reveal">
+      <p>Ready to take your brand to the next level? Fill in the form or reach out directly. We typically respond within 2–4 hours.</p>
+      <div class="contact-detail">
+        <a class="contact-row" href="mailto:namaste.graphixo@gmail.com" title="Send Email">
+          <div class="contact-row-icon"><i class="bi bi-envelope-fill"></i></div>
+          <div class="contact-row-text"><small>Email</small><span>namaste.graphixo@gmail.com</span></div>
+          <i class="bi bi-arrow-up-right" style="margin-left:auto;color:var(--grey);font-size:13px;"></i>
+        </a>
+        <a class="contact-row wa-row" href="https://wa.me/916355168138?text=Hi%20Graphixo!%20I%20want%20to%20discuss%20a%20design%20project." target="_blank" title="Chat on WhatsApp">
+          <div class="contact-row-icon wa-icon"><i class="bi bi-whatsapp"></i></div>
+          <div class="contact-row-text"><small>WhatsApp</small><span>Chat with us instantly</span></div>
+          <i class="bi bi-arrow-up-right" style="margin-left:auto;color:var(--grey);font-size:13px;"></i>
+        </a>
+        <div class="contact-row" style="cursor:default;">
+          <div class="contact-row-icon"><i class="bi bi-geo-alt-fill"></i></div>
+          <div class="contact-row-text"><small>Location</small><span>Morvi, Gujarat, India</span></div>
+        </div>
+        <div class="contact-row" style="cursor:default;">
+          <div class="contact-row-icon"><i class="bi bi-clock-fill"></i></div>
+          <div class="contact-row-text"><small>Working Hours</small><span>Mon–Sat, 10am–8pm IST</span></div>
+        </div>
+      </div>
+      <div class="wa-quick-btns">
+        <a class="wa-quick-btn" href="https://wa.me/916355168138?text=Hi%20Graphixo!%20I%20want%20to%20discuss%20a%20design%20project." target="_blank"><i class="bi bi-whatsapp"></i> WhatsApp Us</a>
+        <a class="email-quick-btn" href="mailto:namaste.graphixo@gmail.com"><i class="bi bi-envelope"></i> Send Email</a>
+      </div>
+      <div class="contact-social">
+        <a class="social-btn" href="https://www.instagram.com/graphixoin/" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
+        <a class="social-btn" href="" title="Facebook"><i class="bi bi-facebook"></i></a>
+        <a class="social-btn" href="https://youtube.com/@graphixodesign" title="YouTube"><i class="bi bi-youtube"></i></a>
+        <a class="social-btn" href="https://wa.me/916355168138?text=Hi%20Graphixo!%20I%20want%20to%20discuss%20a%20design%20project." target="_blank" title="WhatsApp" style="border-color:rgba(37,211,102,0.3);"><i class="bi bi-whatsapp" style="color:#25D366;"></i></a>
+      </div>
+    </div>
+    <div class="contact-form reveal">
+      <div class="form-row"><label>Your Name *</label><input type="text" id="cf-name" placeholder="e.g. Graphixo"></div>
+      <div class="form-row"><label>Email Address *</label><input type="email" id="cf-email" placeholder="namaste.graphixo@email.com"></div>
+      <div class="form-row"><label>Service Needed</label>
+        <select id="cf-service">
+          <option value="">Select a Service...</option>
+          <option>Logo & Brand Identity</option>
+          <option>Social Media Designs</option>
+          <option>Poster & Flyer Design</option>
+          <option>Banner Design</option>
+          <option>Business Card & Stationery</option>
+          <option>Typography & Art</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Budget Range</label>
+        <select id="cf-budget">
+          <option value="">Select budget...</option>
+          <option>Under ₹500</option>
+	  <option>₹500 – ₹1,000</option>
+          <option>₹1,000 – ₹3,000</option>
+          <option>₹3,000 – ₹5,000</option>
+          <option>₹5,000+</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Project Details *</label><textarea id="cf-message" placeholder="Tell us about your project, what you need, your timeline..."></textarea></div>
+      <button class="form-submit" onclick="submitContact()"><i class="bi bi-send-fill"></i> &nbsp;Send Message</button>
+      <div id="form-success"><i class="bi bi-check-circle-fill"></i> Message sent! We'll respond within 4 hours.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <svg height="24" viewBox="0 0 180 40" xmlns="http://www.w3.org/2000/svg">
+        <text y="32" font-family="'Bebas Neue',cursive" font-size="38" fill="white" letter-spacing="1">graphixo</text>
+        <circle cx="174" cy="33" r="6" fill="#e8272a"/>
+      </svg>
+      <p>Bold designs for bold brands. A creative studio from Morvi, Gujarat — serving clients across India and beyond.</p>
+    </div>
+    <div class="footer-col"><h4>Studio</h4><ul><li><a href="#about">About Us</a></li><li><a href="#portfolio">Our Work</a></li><li><a href="#services">Services</a></li><li><a href="#process">Process</a></li></ul></div>
+    <div class="footer-col"><h4>Services</h4><ul><li><a href="#contact">Logo Design</a></li><li><a href="#contact">Social Media</a></li><li><a href="#contact">Poster & Flyer</a></li><li><a href="#contact">Brand Identity</a></li></ul></div>
+    <div class="footer-col"><h4>Connect</h4><ul><li><a href="https://drive.google.com/drive/folders/1PREQppnjhSuab3JQpE_8aEcefKf-vJbt?usp=drive_link" target="_blank">Google Drive</a></li><li><a href="#contact">Instagram</a></li><li><a href="#contact">Facebook</a></li><li><a href="#contact">WhatsApp</a></li></ul></div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Graphixo<span>.</span> All rights reserved.</p>
+    <p>Made with <span>♥</span> in Morvi, Gujarat</p>
+  </div>
+</footer>
+
+<!-- WHATSAPP FLOATING BUTTON -->
+<div id="wa-float">
+  <span id="wa-tooltip"><i class="bi bi-whatsapp"></i> Chat with Graphixo</span>
+  <div style="position:relative;width:54px;height:54px;">
+    <div id="wa-pulse"></div>
+    <a id="wa-btn" href="https://wa.me/916355168138?text=Hi%20Graphixo!%20I%20want%20to%20discuss%20a%20design%20project." target="_blank" title="Chat on WhatsApp" style="position:relative;z-index:2;">
+      <i class="bi bi-whatsapp"></i>
+    </a>
+  </div>
+</div>
+
+
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <div class="admin-modal">
+    <div class="admin-header">
+      <h2>ADMIN<span style="color:var(--red)">.</span></h2>
+      <button class="admin-close" onclick="closeAdmin()"><i class="bi bi-x"></i></button>
+    </div>
+    <!-- LOGIN -->
+    <div id="admin-login-wrap">
+      <p style="font-size:13px;color:var(--grey);margin-bottom:18px;">Enter admin credentials to manage designs and view messages.</p>
+      <div class="admin-login">
+        <input type="text" id="admin-user" placeholder="Username">
+        <input type="password" id="admin-pass" placeholder="Password">
+        <button class="admin-login-btn" onclick="adminLogin()">Login →</button>
+        <p id="admin-err" style="font-size:12px;color:var(--red);display:none;">Invalid credentials.</p>
+      </div>
+    </div>
+    <!-- DASHBOARD -->
+    <div id="admin-dash" class="admin-dash">
+      <div class="admin-tab-bar">
+        <button class="admin-tab active" onclick="adminTab('add')">Add Design</button>
+        <button class="admin-tab" onclick="adminTab('list')">Designs (<span id="design-count">0</span>)</button>
+        <button class="admin-tab" onclick="adminTab('msgs')">Messages (<span id="msg-count">0</span>)</button>
+      </div>
+      <!-- ADD DESIGN TAB -->
+      <div id="admin-tab-add">
+        <div class="admin-form-row"><label>Design Title *</label><input type="text" id="ad-title" placeholder="e.g. Luxury Brand Logo"></div>
+        <div class="admin-form-row"><label>Category *</label>
+          <select id="ad-cat">
+            <option value="logo">Logo Design</option>
+            <option value="social">Social Media</option>
+            <option value="poster">Poster</option>
+            <option value="flyer">Flyer</option>
+            <option value="brand">Brand Identity</option>
+            <option value="banner">Banner</option>
+            <option value="card">Business Card</option>
+            <option value="typography">Typography</option>
+          </select>
+        </div>
+        <div class="admin-form-row"><label>Image — Local Filename or Full URL</label><input type="text" id="ad-img" placeholder="e.g. MyLogo.png  or  https://..."></div>
+        <p style="font-size:11px;color:var(--grey);margin-top:-10px;margin-bottom:12px;">Local filenames will be resolved using BASE_IMG_PATH set in the script.</p>
+        <div class="admin-form-row"><label>Description</label><textarea id="ad-desc" placeholder="Brief description of the design..." style="min-height:70px;width:100%;background:var(--bg);border:1px solid var(--grey2);border-radius:6px;padding:11px 13px;font-family:var(--body);font-size:14px;color:var(--white);outline:none;resize:vertical;"></textarea></div>
+        <button class="admin-submit-btn" onclick="adminAddDesign()">+ Add Design to Portfolio</button>
+        <p id="ad-success" style="font-size:12px;color:#4ade80;margin-top:10px;display:none;">✅ Design added to portfolio!</p>
+      </div>
+      <!-- LIST TAB -->
+      <div id="admin-tab-list" style="display:none;">
+        <div class="admin-designs-list"><h3>All Designs</h3><div id="admin-designs-list-inner"></div></div>
+      </div>
+      <!-- MESSAGES TAB -->
+      <div id="admin-tab-msgs" style="display:none;">
+        <div class="messages-list" id="messages-list-inner"><p style="font-size:13px;color:var(--grey);">No messages yet.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()"><i class="bi bi-x-lg"></i></button>
+  <div id="lightbox-content"></div>
+</div>
+
+<script>
+// ─── IMAGE PATH CONFIG ───────────────────────────────────────────────────────
+// Set this to the folder where your images are stored.
+// Examples:
+//   '' → same folder as the HTML file (default)
+//   'images/' → subfolder called "images"
+//   'https://yourdomain.com/portfolio/' → full URL prefix
+const BASE_IMG_PATH = ''; // ← CHANGE THIS to your image folder path
+
+// ─── DATA STORE ──────────────────────────────────────────────────────────────
+const CAT_ICONS = {logo:'bi-vector-pen',social:'bi-instagram',poster:'bi-file-earmark-image',flyer:'bi-newspaper',brand:'bi-award',banner:'bi-aspect-ratio',card:'bi-credit-card-2-front',typography:'bi-fonts'};
+const CAT_LABELS = {logo:'Logo Design',social:'Social Media',poster:'Poster',flyer:'Flyer / Invite',brand:'Brand Identity',banner:'Banner',card:'Business Card',typography:'Typography'};
+
+// Seed designs — real Graphixo portfolio work
+let designs = [
+  // LOGO DESIGNS
+  {id:1, title:'Graphixo Logo', cat:'logo', img:'S://Graphixo/image/Graphixo.jpg', imgLocal:"", desc:'The bold wordmark identity for Graphixo creative studio — white on black with signature red dot.'},
+  {id:2, title:'Kuldevi Kids Mall Logo v1', cat:'logo', img:'', imgLocal:"S://Graphixo/image/Kuldevi Kids Mall Logo-1.jpg", desc:'Vibrant multi-color logo featuring playful child silhouettes inside bold KIDS lettering.'},
+  {id:3, title:'Kuldevi Kids Mall Logo v2', cat:'logo', img:'', imgLocal:"S://Graphixo/image/Kuldevi Kids Mall Logo-2.jpg", desc:'Fun alternate logo for Kuldevi Kids Mall with gradient typography and smile arc.'},
+  {id:4, title:'Dwarkesh Car Detailing Logo', cat:'logo', img:'', imgLocal:"S://Graphixo/image/Dwarkesh The Car Detailing Logo.png", desc:'Sleek silver metallic logo for a premium car detailing service — dark luxury aesthetic.'},
+  // SOCIAL MEDIA
+  {id:5, title:'Chaitra Navratri Post', cat:'social', img:'', imgLocal:'S://Graphixo/image/Chaitra Navratri Post.png', desc:'Festive Navratri social media post with Gujarati typography and Goddess Durga illustration.'},
+  {id:6, title:'Gujju Fashion Promotional Post', cat:'social', img:'', imgLocal:'S://Graphixo/image/Gujju Fashion POst.png', desc:'Bold fashion store post in Gujarati with 3D character and dark blue backdrop.'},
+  {id:7, title:'Radhe Beauty Parlour Post', cat:'social', img:'', imgLocal:'S://Graphixo/image/Radhe Beauty Parlour Post.png', desc:'Elegant beauty parlour social post featuring bridal styling services in Gujarati.'},
+  {id:8, title:'50K Followers — Niral Aghara', cat:'social', img:'', imgLocal:'S://Graphixo/image/50K Niral Aghara-2.png', desc:'Milestone celebration post for reaching 50K Facebook followers with cinematic studio shoot.'},
+  {id:9, title:'10K Followers Celebration', cat:'social', img:'', imgLocal:'S://Graphixo/image/10K Followers Complete.png', desc:'Instagram 10K milestone post for digital creator with dynamic fire effects.'},
+  // POSTER
+  {id:10, title:'Vedant Global School — Admission Open', cat:'poster', img:'', imgLocal:'S://Graphixo/image/Vedant Admission Open Post.png', desc:'School admission promotional poster for 2026-27 in Gujarati & English medium.'},
+  // CARD
+  {id:11, title:'OM Tiles Business Card', cat:'card', img:'', imgLocal:'S://Graphixo/image/OM Tiles Business Card -2.png', desc:'Clean geometric business card for OM Tiles — tiles wholesaler in Morbi with earthy tones.'},
+  // INVITATION
+  {id:12, title:'Kuldevi Kids Mall Opening Invitation', cat:'flyer', img:'', imgLocal:'S://Graphixo/image/Kuldevi Opening Invitation Card.png', desc:'Bilingual shop opening invitation card for Kuldevi Kids Mall, Morbi.'},
+  // BANNER
+  {id:13, title:'Bajrang Mango Center Banner', cat:'banner', img:'', imgLocal:'S://Graphixo/image/Bajarang Mango Center Banner.jpg', desc:'Vibrant Gujarati hoarding banner for a mango center with fresh fruit photography.'},
+  // FILLER PORTFOLIO ITEMS
+  {id:14, title:'Niswarth Prem Logo', cat:'logo', img:'',  imgLocal:'S://Graphixo/image/Niswarth Prem Logo.png', desc:'Modern wordmark for a SaaS startup.'},
+  {id:15, title:'Radhe Beauty Parlour', cat:'brand', img:'S://Graphixo/image/Radhe Beauty Parlour-3 Banner.png', desc:'Full brand suite for a gold jewellery store.'},
+  {id:16, title:'Upsarpanch Cha', cat:'Marketing Post', img:'S://Graphixo/image/Upasarpanch Cha Post-1.jpg', desc:'Hoarding design for a real estate developer.'},
+];
+let messages = [];
+let visibleCount = 8;
+let currentFilter = 'all';
+
+// ─── HERO 3D (Three.js) ───────────────────────────────────────────────────────
+(function initHero() {
+  const canvas = document.getElementById('hero-canvas');
+  const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 200);
+  camera.position.set(0, 0, 30);
+
+  // Particle galaxy
+  const count = window.innerWidth < 768 ? 1800 : 4000;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count*3);
+  const col = new Float32Array(count*3);
+  for(let i=0;i<count;i++){
+    const i3=i*3;
+    const r = Math.random()*22+1;
+    const theta = Math.random()*Math.PI*2;
+    const phi = Math.random()*Math.PI;
+    pos[i3] = r*Math.sin(phi)*Math.cos(theta)+(Math.random()-.5)*3;
+    pos[i3+1] = r*Math.sin(phi)*Math.sin(theta)+(Math.random()-.5)*3;
+    pos[i3+2] = r*Math.cos(phi)+(Math.random()-.5)*3;
+    const t = Math.random();
+    if(t<0.33){col[i3]=0.91;col[i3+1]=0.15;col[i3+2]=0.16;}
+    else if(t<0.66){col[i3]=1;col[i3+1]=1;col[i3+2]=1;}
+    else{col[i3]=0.4;col[i3+1]=0.4;col[i3+2]=0.4;}
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const mat = new THREE.PointsMaterial({size:0.08,vertexColors:true,sizeAttenuation:true,transparent:true,opacity:0.75});
+  scene.add(new THREE.Points(geo,mat));
+
+  // Floating geometric shapes
+  const shapes3d = [];
+  for(let i=0;i<8;i++){
+    const geos = [new THREE.OctahedronGeometry(0.5+Math.random()*0.8,0), new THREE.IcosahedronGeometry(0.4+Math.random()*0.6,0), new THREE.TetrahedronGeometry(0.5+Math.random()*0.7,0)];
+    const g = geos[i%3];
+    const m = new THREE.MeshStandardMaterial({color:i%2===0?0xe8272a:0xffffff,emissive:i%2===0?0xe8272a:0x888888,emissiveIntensity:0.4,roughness:0.2,metalness:0.8,wireframe:i%3===0});
+    const mesh = new THREE.Mesh(g,m);
+    const r2 = 5+Math.random()*8;
+    const a = (i/8)*Math.PI*2;
+    mesh.position.set(Math.cos(a)*r2,(Math.random()-.5)*6,Math.sin(a)*r2-5);
+    mesh.userData = {orbitR:r2,orbitA:a,orbitS:(Math.random()-.5)*0.006,floatS:Math.random()*0.8+0.4,floatO:Math.random()*Math.PI*2};
+    scene.add(mesh); shapes3d.push(mesh);
+  }
+
+  const light1 = new THREE.PointLight(0xe8272a,3,40); light1.position.set(8,8,5); scene.add(light1);
+  const light2 = new THREE.PointLight(0xffffff,1.5,30); light2.position.set(-8,-5,5); scene.add(light2);
+  scene.add(new THREE.AmbientLight(0x111111,1));
+
+  let mx=0,my=0;
+  window.addEventListener('mousemove',e=>{mx=(e.clientX/window.innerWidth-.5)*2;my=(e.clientY/window.innerHeight-.5)*2;});
+  window.addEventListener('touchmove',e=>{if(e.touches[0]){mx=(e.touches[0].clientX/window.innerWidth-.5)*2;my=(e.touches[0].clientY/window.innerHeight-.5)*2;}},{passive:true});
+  window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});
+
+  const clock = new THREE.Clock();
+  function animate(){
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+    camera.position.x += (mx*2-camera.position.x)*0.03;
+    camera.position.y += (-my*1.5-camera.position.y)*0.03;
+    camera.lookAt(0,0,0);
+    scene.rotation.y = t*0.04;
+    shapes3d.forEach(s=>{
+      s.userData.orbitA += s.userData.orbitS;
+      s.position.x = Math.cos(s.userData.orbitA)*s.userData.orbitR;
+      s.position.z = Math.sin(s.userData.orbitA)*s.userData.orbitR-5;
+      s.position.y += Math.sin(t*s.userData.floatS+s.userData.floatO)*0.008;
+      s.rotation.x += 0.01; s.rotation.y += 0.008;
+    });
+    light1.position.x = Math.sin(t*0.5)*10; light1.position.y = Math.cos(t*0.4)*8;
+    renderer.render(scene,camera);
+  }
+  animate();
+})();
+
+// ─── ABOUT 3D ────────────────────────────────────────────────────────────────
+(function initAbout(){
+  const canvas = document.getElementById('about-canvas');
+  const renderer = new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  const w = canvas.parentElement.clientWidth, h = canvas.parentElement.clientHeight;
+  renderer.setSize(w,h);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55,w/h,0.1,100);
+  camera.position.set(0,0,12);
+
+  // Pen nib / letter G shape approximated as 3D letters/orbiting elements
+  const group = new THREE.Group();
+  scene.add(group);
+
+  // Central G orb
+  const cGeo = new THREE.SphereGeometry(1.8,32,32);
+  const cMat = new THREE.MeshStandardMaterial({color:0x1a1a1a,roughness:0.1,metalness:0.9,wireframe:false});
+  const cMesh = new THREE.Mesh(cGeo,cMat);
+  group.add(cMesh);
+
+  // G text plane (circle ring to hint 'G')
+  const ringGeo = new THREE.TorusGeometry(2.5,0.06,8,64,Math.PI*1.6);
+  const ringMat = new THREE.MeshStandardMaterial({color:0xe8272a,emissive:0xe8272a,emissiveIntensity:0.6});
+  const ring = new THREE.Mesh(ringGeo,ringMat);
+  ring.rotation.z = 0.3;
+  group.add(ring);
+
+  // Dot — the red dot of the logo
+  const dotGeo = new THREE.SphereGeometry(0.35,16,16);
+  const dotMat = new THREE.MeshStandardMaterial({color:0xe8272a,emissive:0xe8272a,emissiveIntensity:1});
+  const dot = new THREE.Mesh(dotGeo,dotMat);
+  dot.position.set(2.8,-.5,0);
+  group.add(dot);
+
+  // Orbiting design tool icons (small shapes)
+  const orbitItems = [];
+  const orbitColors = [0xe8272a,0xffffff,0xe8272a,0xcccccc,0xe8272a,0xffffff];
+  for(let i=0;i<6;i++){
+    const g2 = i%3===0?new THREE.OctahedronGeometry(0.28,0):i%3===1?new THREE.TetrahedronGeometry(0.3,0):new THREE.BoxGeometry(0.3,0.3,0.3);
+    const m2 = new THREE.MeshStandardMaterial({color:orbitColors[i],emissive:orbitColors[i],emissiveIntensity:0.3,roughness:0.3,metalness:0.8});
+    const mesh = new THREE.Mesh(g2,m2);
+    const angle = (i/6)*Math.PI*2;
+    const radius = 3.8+Math.sin(i)*0.3;
+    mesh.position.set(Math.cos(angle)*radius,Math.sin(angle)*0.8,Math.sin(angle)*radius*0.5);
+    mesh.userData={angle,radius,speed:(i%2===0?1:-1)*0.012+0.006,tilt:i*0.3};
+    group.add(mesh); orbitItems.push(mesh);
+  }
+
+  // Particles
+  const pGeo = new THREE.BufferGeometry();
+  const pPos = new Float32Array(300*3);
+  for(let i=0;i<300;i++){const i3=i*3;const r=3+Math.random()*3;const a=Math.random()*Math.PI*2;const b=Math.random()*Math.PI;pPos[i3]=r*Math.sin(b)*Math.cos(a);pPos[i3+1]=r*Math.sin(b)*Math.sin(a);pPos[i3+2]=r*Math.cos(b);}
+  pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+  const pMat = new THREE.PointsMaterial({color:0xe8272a,size:0.05,transparent:true,opacity:0.5});
+  group.add(new THREE.Points(pGeo,pMat));
+
+  scene.add(new THREE.AmbientLight(0x333333,1));
+  const pl = new THREE.PointLight(0xe8272a,3,20); pl.position.set(5,5,5); scene.add(pl);
+  const pl2 = new THREE.PointLight(0xffffff,1.5,15); pl2.position.set(-5,-3,3); scene.add(pl2);
+
+  const clock2 = new THREE.Clock();
+  let mx2=0,my2=0;
+  canvas.parentElement.addEventListener('mousemove',e=>{const r=canvas.getBoundingClientRect();mx2=(e.clientX-r.left)/r.width*2-1;my2=-((e.clientY-r.top)/r.height*2-1);});
+  canvas.parentElement.addEventListener('touchmove',e=>{if(e.touches[0]){const r=canvas.getBoundingClientRect();mx2=(e.touches[0].clientX-r.left)/r.width*2-1;my2=-((e.touches[0].clientY-r.top)/r.height*2-1);}},{passive:true});
+
+  function animAbout(){
+    requestAnimationFrame(animAbout);
+    const t = clock2.getElapsedTime();
+    group.rotation.y += 0.006;
+    group.rotation.x += (my2*0.3-group.rotation.x)*0.04;
+    cMesh.rotation.y = t*0.3;
+    ring.rotation.z = t*0.15;
+    orbitItems.forEach(o=>{
+      o.userData.angle += o.userData.speed;
+      const a=o.userData.angle, r=o.userData.radius;
+      o.position.set(Math.cos(a)*r,Math.sin(a+o.userData.tilt)*1.2,Math.sin(a)*r*0.5);
+      o.rotation.x+=0.02;o.rotation.y+=0.015;
+    });
+    renderer.render(scene,camera);
+  }
+  animAbout();
+})();
+
+// ─── PORTFOLIO ────────────────────────────────────────────────────────────────
+function renderPortfolio(){
+  const grid = document.getElementById('portfolio-grid');
+  const filtered = currentFilter==='all' ? designs : designs.filter(d=>d.cat===currentFilter);
+  const visible = filtered.slice(0, visibleCount);
+  grid.innerHTML = '';
+  visible.forEach(d=>{
+    const card = document.createElement('div');
+    card.className='port-card';
+    card.setAttribute('data-cat',d.cat);
+    const iconClass = CAT_ICONS[d.cat]||'bi-palette';
+    const catLabel = CAT_LABELS[d.cat]||d.cat;
+    // Resolve image source: local filename uses BASE_IMG_PATH prefix, remote URLs used as-is
+    const imgSrc = d.imgLocal ? BASE_IMG_PATH + d.imgLocal : d.img;
+    const hasImg = !!imgSrc;
+    card.innerHTML = `
+      ${hasImg?`<img class="port-card-img" src="${imgSrc}" alt="${d.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">`:''}
+      <div class="port-card-placeholder" style="${hasImg?'display:none':'display:flex'}">
+        <i class="bi ${iconClass}" style="font-size:44px;color:var(--red);opacity:0.6;"></i>
+      </div>
+      <div class="port-card-badge"><i class="bi ${iconClass}"></i> ${catLabel}</div>
+      <div class="port-card-overlay"></div>
+      <div class="port-card-info">
+        <div class="port-card-cat"><i class="bi ${iconClass}"></i> ${catLabel}</div>
+        <div class="port-card-title">${d.title}</div>
+      </div>`;
+    card.onclick=()=>openLightbox(d);
+    grid.appendChild(card);
+  });
+  document.getElementById('load-more-btn').style.display = visibleCount >= filtered.length ? 'none':'inline-block';
+}
+
+function loadMore(){visibleCount+=8;renderPortfolio();}
+
+document.getElementById('cat-bar').addEventListener('click',e=>{
+  const btn = e.target.closest('.cat-btn');
+  if(!btn)return;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = btn.dataset.cat;
+  visibleCount = 8;
+  renderPortfolio();
+});
+
+// ─── LIGHTBOX ────────────────────────────────────────────────────────────────
+function openLightbox(d){
+  const iconClass = CAT_ICONS[d.cat]||'bi-palette';
+  const catLabel = CAT_LABELS[d.cat]||d.cat;
+  const lb = document.getElementById('lightbox');
+  const lbc = document.getElementById('lightbox-content');
+  const imgSrc = d.imgLocal ? BASE_IMG_PATH + d.imgLocal : d.img;
+  if(imgSrc){
+    lbc.innerHTML=`<img class="lightbox-img" src="${imgSrc}" alt="${d.title}" onerror="this.style.display='none';this.nextSibling.style.display='flex';"><div class="lightbox-placeholder" style="display:none;"><i class='bi ${iconClass}' style='font-size:64px;color:var(--red);margin-bottom:18px;'></i><h3>${d.title}</h3><p>${d.desc||catLabel}</p><a href='https://drive.google.com/drive/folders/1PREQppnjhSuab3JQpE_8aEcefKf-vJbt?usp=drive_link' target='_blank' onclick='event.stopPropagation()'><i class='bi bi-folder2-open'></i> View on Google Drive</a></div>`;
+  } else {
+    lbc.innerHTML=`<div class="lightbox-placeholder"><i class="bi ${iconClass}" style="font-size:64px;color:var(--red);margin-bottom:18px;"></i><h3>${d.title}</h3><p>${d.desc||catLabel}</p><a href="https://drive.google.com/drive/folders/1PREQppnjhSuab3JQpE_8aEcefKf-vJbt?usp=drive_link" target="_blank" onclick="event.stopPropagation()"><i class="bi bi-folder2-open"></i> View on Google Drive</a></div>`;
+  }
+  lb.classList.add('open');
+}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
+
+// ─── CONTACT FORM ────────────────────────────────────────────────────────────
+function submitContact(){
+  const name=document.getElementById('cf-name').value.trim();
+  const email=document.getElementById('cf-email').value.trim();
+  const msg=document.getElementById('cf-message').value.trim();
+  if(!name||!email||!msg){alert('Please fill in all required fields.');return;}
+  const service=document.getElementById('cf-service').value;
+  const budget=document.getElementById('cf-budget').value;
+  messages.push({name,email,service,budget,msg,date:new Date().toLocaleString()});
+
+  // Build mailto link to send to graphixo email
+  const subject=encodeURIComponent(`New Project Enquiry from ${name}${service?' — '+service:''}`);
+  const body=encodeURIComponent(`Name: ${name}\nEmail: ${email}\nService: ${service||'Not specified'}\nBudget: ${budget||'Not specified'}\n\nMessage:\n${msg}`);
+  const mailtoLink=`mailto:namaste.graphixo@gmail.com?subject=${subject}&body=${body}`;
+
+  // Open email client
+  window.location.href=mailtoLink;
+
+  document.getElementById('form-success').style.display='block';
+  document.getElementById('cf-name').value='';
+  document.getElementById('cf-email').value='';
+  document.getElementById('cf-message').value='';
+  document.getElementById('cf-service').value='';
+  document.getElementById('cf-budget').value='';
+  document.getElementById('msg-count').textContent=messages.length;
+  setTimeout(()=>document.getElementById('form-success').style.display='none',5000);
+}
+
+// ─── ADMIN ───────────────────────────────────────────────────────────────────
+function openAdmin(){document.getElementById('admin-panel').classList.add('open');}
+function closeAdmin(){document.getElementById('admin-panel').classList.remove('open');}
+document.getElementById('admin-panel').addEventListener('click',function(e){if(e.target===this)closeAdmin();});
+
+function adminLogin(){
+  const u=document.getElementById('admin-user').value;
+  const p=document.getElementById('admin-pass').value;
+  if(u==='graphixo'&&p==='admin123'){
+    document.getElementById('admin-login-wrap').style.display='none';
+    document.getElementById('admin-dash').classList.add('active');
+    refreshAdminList();
+  } else {
+    document.getElementById('admin-err').style.display='block';
+  }
+}
+
+function adminTab(tab){
+  document.querySelectorAll('.admin-tab').forEach((t,i)=>{t.classList.toggle('active',['add','list','msgs'][i]===tab);});
+  document.getElementById('admin-tab-add').style.display=tab==='add'?'block':'none';
+  document.getElementById('admin-tab-list').style.display=tab==='list'?'block':'none';
+  document.getElementById('admin-tab-msgs').style.display=tab==='msgs'?'block':'none';
+  if(tab==='list')refreshAdminList();
+  if(tab==='msgs')refreshMsgList();
+}
+
+function adminAddDesign(){
+  const title=document.getElementById('ad-title').value.trim();
+  const cat=document.getElementById('ad-cat').value;
+  const imgVal=document.getElementById('ad-img').value.trim();
+  const desc=document.getElementById('ad-desc').value.trim();
+  if(!title){alert('Please enter a title.');return;}
+  const newId=Date.now();
+  // If value starts with http/https, treat as remote URL; otherwise treat as local filename
+  const isUrl = imgVal.startsWith('http://') || imgVal.startsWith('https://');
+  designs.unshift({id:newId,title,cat, img: isUrl ? imgVal : '', imgLocal: (!isUrl && imgVal) ? imgVal : '', desc});
+  document.getElementById('ad-title').value='';
+  document.getElementById('ad-img').value='';
+  document.getElementById('ad-desc').value='';
+  document.getElementById('design-count').textContent=designs.length;
+  document.getElementById('ad-success').style.display='block';
+  setTimeout(()=>document.getElementById('ad-success').style.display='none',3000);
+  renderPortfolio();
+}
+
+function refreshAdminList(){
+  document.getElementById('design-count').textContent=designs.length;
+  const el=document.getElementById('admin-designs-list-inner');
+  el.innerHTML=designs.slice(0,20).map(d=>`
+    <div class="admin-design-item">
+      <div><strong>${d.title}</strong><span style="margin-left:10px;">${CAT_LABELS[d.cat]||d.cat}</span></div>
+      <button class="admin-del-btn" onclick="deleteDesign(${d.id})">Delete</button>
+    </div>`).join('');
+}
+
+function deleteDesign(id){
+  designs=designs.filter(d=>d.id!==id);
+  refreshAdminList();
+  renderPortfolio();
+}
+
+function refreshMsgList(){
+  document.getElementById('msg-count').textContent=messages.length;
+  const el=document.getElementById('messages-list-inner');
+  if(!messages.length){el.innerHTML='<p style="font-size:13px;color:var(--grey);">No messages yet.</p>';return;}
+  el.innerHTML=messages.map(m=>`
+    <div class="msg-item">
+      <div class="msg-item-header"><span class="msg-item-name">${m.name}</span><span class="msg-item-date">${m.date}</span></div>
+      <div class="msg-item-email">${m.email}${m.service?' · '+m.service:''}</div>
+      <div class="msg-item-text">${m.msg}</div>
+    </div>`).join('');
+}
+
+// ─── MOBILE MENU ─────────────────────────────────────────────────────────────
+function toggleMenu(){
+  const h=document.getElementById('hamburger');
+  const m=document.getElementById('mobile-menu');
+  h.classList.toggle('open');
+  m.classList.toggle('open');
+  document.body.classList.toggle('menu-open');
+}
+function closeMenu(){
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.body.classList.remove('menu-open');
+}
+
+// ─── NAV SCROLL ──────────────────────────────────────────────────────────────
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav-bg').classList.toggle('scrolled',window.scrollY>60);
+});
+
+// ─── CURSOR ──────────────────────────────────────────────────────────────────
+const cur=document.getElementById('cur');
+const curR=document.getElementById('cur-ring');
+let cx=0,cy=0,rx=0,ry=0;
+window.addEventListener('mousemove',e=>{cx=e.clientX;cy=e.clientY;cur.style.left=cx+'px';cur.style.top=cy+'px';});
+function animCursor(){
+  rx+=(cx-rx)*0.12; ry+=(cy-ry)*0.12;
+  curR.style.left=rx+'px'; curR.style.top=ry+'px';
+  requestAnimationFrame(animCursor);
+}
+animCursor();
+document.querySelectorAll('a,button,.port-card,.cat-btn,.ctrl-btn,.pill').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.classList.add('hovering');curR.classList.add('hovering');});
+  el.addEventListener('mouseleave',()=>{cur.classList.remove('hovering');curR.classList.remove('hovering');});
+});
+
+// ─── SCROLL REVEAL ───────────────────────────────────────────────────────────
+const io = new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+renderPortfolio();
+</script>
+</body>
+</html>
